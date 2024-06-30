@@ -18,6 +18,8 @@ extension UIImage {
 	/// - Returns: A `UIImage` instance, or nil if the image could not be initialized or the image does not contain frames. The returned `UIImage` will have its `duration` property set to the total animation duration, and its `frames` array will contain the individual frames.
 	///
 	/// If the image has a variable frame rate, each item in `frames` will have an extra property ``frameDelay`` attached, specifying the duration of that frame.
+	///
+	/// - Note: You can pass an image created this way to a `UIImageView` and it will animate. However, because `UIImageView` is not aware of the extra ``frameDelay`` property, variable frame rate images will play back at a constant frame rate.
 	public static func animatedImage(data: Data, fileExtension: String? = nil) -> UIImage? {
 		let options: [AnyHashable: Any]
 		if let fileExtension, let type = UTType(filenameExtension: fileExtension) {
