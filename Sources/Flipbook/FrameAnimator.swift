@@ -7,21 +7,25 @@
 
 import SwiftUI
 
+/// A view that displays frames of an animation according to timings that you provide.
 public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 	public var timing: Timing
 	public var start: Date
 	public var paused: Bool
+	public var loops: Int?
 	@ViewBuilder public var content: (_ frame: Int) -> Content
 	
 	public init(
 		_ timing: Timing,
 		start: Date = Date(timeIntervalSince1970: 0),
 		paused: Bool = false,
+		loops: Int? = nil,
 		@ViewBuilder content: @escaping (_ frame: Int) -> Content
 	) {
 		self.timing = timing
 		self.start = start
 		self.paused = paused
+		self.loops = loops
 		self.content = content
 	}
 	
@@ -33,13 +37,27 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 		guard canAnimate else {
 			return 0
 		}
-		let elapsed = date.timeIntervalSince(start).truncatingRemainder(dividingBy: timing.duration)
-		return timing.frameIndex(at: elapsed)
+		let elapsed = date.timeIntervalSince(start)
+		
+		if hasReachedLoopLimit(at: date) {
+			return timing.frameCount - 1
+		} else {
+			return timing.frameIndex(at: elapsed)
+		}
+	}
+	
+	private func hasReachedLoopLimit(at date: Date) -> Bool {
+		if let loops {
+			let elapsed = date.timeIntervalSince(start)
+			return elapsed >= timing.duration * Double(loops)
+		} else {
+			return false
+		}
 	}
 	
     public var body: some View {
 		if canAnimate {
-			TimelineView(timing.timelineSchedule(paused: paused)) { context in
+			TimelineView(timing.timelineSchedule(paused: paused || hasReachedLoopLimit(at: .now))) { context in
 				let frame = frameIndex(at: context.date)
 				content(frame)
 			}

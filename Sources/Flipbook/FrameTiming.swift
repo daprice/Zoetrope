@@ -7,9 +7,10 @@
 
 import SwiftUI
 
-public protocol FrameTiming {
+public protocol FrameTiming: Equatable, Hashable {
 	associatedtype FrameTimelineSchedule: TimelineSchedule
 	var duration: TimeInterval { get }
+	var frameCount: Int { get }
 	func frameIndex(at elapsedTime: TimeInterval) -> Int
 	func timelineSchedule(paused: Bool) -> FrameTimelineSchedule
 }
@@ -27,8 +28,9 @@ public struct ConstantFrameTiming: FrameTiming {
 	}
 	
 	public func frameIndex(at elapsedTime: TimeInterval) -> Int {
-		guard let frameDuration else { return 0 }
-		return Int(elapsedTime / frameDuration)
+		guard let frameDuration, duration > 0 else { return 0 }
+		let elapsedWithinLoop = elapsedTime.truncatingRemainder(dividingBy: duration)
+		return Int(elapsedWithinLoop / frameDuration)
 	}
 	
 	public func timelineSchedule(paused: Bool) -> AnimationTimelineSchedule {
