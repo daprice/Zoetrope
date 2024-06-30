@@ -19,7 +19,14 @@ public struct VariableFrameTiming: FrameTiming {
 	public func frameIndex(at elapsedTime: TimeInterval) -> Int {
 		guard duration > 0 else { return 0 }
 		let elapsedWithinLoop = elapsedTime.truncatingRemainder(dividingBy: duration)
-		return frameOffsets.lastIndex(where: { $0 <= elapsedWithinLoop }) ?? 0
+//		return frameOffsets.lastIndex(where: { $0 <= elapsedWithinLoop }) ?? 0
+		return closestFrameIndex(toOffset: elapsedWithinLoop) ?? 0
+	}
+	
+	private func closestFrameIndex(toOffset offset: TimeInterval) -> Int? {
+		return frameOffsets.enumerated().min { lhs, rhs in
+			return abs(offset - lhs.element) < abs(offset - rhs.element)
+		}?.offset ?? 0
 	}
 	
 	public func timelineSchedule(paused: Bool) -> some TimelineSchedule {
@@ -67,31 +74,37 @@ extension VariableFrameTiming {
 		public struct Entries: Sequence, IteratorProtocol {
 			private let startDate: Date
 			private let frameTiming: VariableFrameTiming
-			private var elapsedSinceAnimationStart: TimeInterval
 			private var paused: Bool
+			
+			private var loopStartDate: Date
+			private var frameIndex: Int
 			
 			internal init(startDate: Date, frameTiming: VariableFrameTiming, paused: Bool) {
 				self.startDate = startDate
 				self.frameTiming = frameTiming
-				self.elapsedSinceAnimationStart = startDate.timeIntervalSince(frameTiming.startDate)
 				self.paused = paused
+				
+				let totalElapsed = startDate.timeIntervalSince(frameTiming.startDate)
+				let loopsCompleted = Int(totalElapsed / frameTiming.duration)
+				let currentFrameIndex = frameTiming.frameIndex(at: totalElapsed)
+				self.loopStartDate = Date(timeInterval: Double(loopsCompleted) * frameTiming.duration, since: frameTiming.startDate)
+				self.frameIndex = currentFrameIndex
 			}
 			
 			mutating public func next() -> Date? {
 				guard !self.paused else { return nil }
 				
-				let currentFrameIndex = frameTiming.frameIndex(at: elapsedSinceAnimationStart)
-				
-				let nextFrameIndex = currentFrameIndex + 1 >= frameTiming.frameOffsets.count ? 0 : currentFrameIndex + 1
-				let nextFrameOffset = nextFrameIndex == 0 ? frameTiming.duration : frameTiming.frameOffsets[nextFrameIndex]
-				
-				let loopsCompleted = Int(elapsedSinceAnimationStart / frameTiming.duration)
-				let thisLoopStartElapsedTime = Double(loopsCompleted) * frameTiming.duration
-				
-				let nextFrameElapsedTime = thisLoopStartElapsedTime + nextFrameOffset
-				let timeUntilNextFrame = nextFrameElapsedTime - elapsedSinceAnimationStart
-				defer { elapsedSinceAnimationStart += timeUntilNextFrame }
-				return frameTiming.startDate.addingTimeInterval(nextFrameElapsedTime)
+				if frameIndex >= frameTiming.frameCount - 1 {
+					let nextFrameOffset = frameTiming.duration
+					defer {
+						loopStartDate = loopStartDate.addingTimeInterval(frameTiming.duration)
+						frameIndex = 0
+					}
+					return loopStartDate.addingTimeInterval(nextFrameOffset)
+				} else {
+					frameIndex += 1
+					return loopStartDate.addingTimeInterval(frameTiming.frameOffsets[frameIndex])
+				}
 			}
 		}
 	}
