@@ -63,6 +63,7 @@ extension UIImage {
 		guard !frames.isEmpty else { return nil }
 		
 		return UIImage.animatedImage(with: frames.map { $0.0 }, duration: duration)
+		// TODO: read and do something with the loop count from the gif
 	}
 }
 
