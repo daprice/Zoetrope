@@ -73,3 +73,53 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 			.font(.system(size: 100))
 	}
 }
+
+#Preview {
+	FrameAnimator(.variable(frameDelays: [
+		0.5,
+		1,
+		0.5,
+		1,
+		0.5,
+		1,
+		0.5,
+		1,
+		0.5,
+		1,
+	])) { frame in
+		Image(systemName: "\(frame).circle.fill")
+			.font(.system(size: 100))
+	}
+}
+
+#Preview {
+	FrameAnimator(.variable(frameDelays: [
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+		0.1,
+		0.2,
+	])) { frame in
+		Image(systemName: "\(frame).circle.fill")
+			.font(.system(size: 100))
+	}
+}

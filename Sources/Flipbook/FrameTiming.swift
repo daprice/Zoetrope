@@ -61,7 +61,7 @@ public struct VariableFrameTiming: FrameTiming {
 	public func frameIndex(at elapsedTime: TimeInterval) -> Int {
 		guard duration > 0 else { return 0 }
 		let elapsedWithinLoop = elapsedTime.truncatingRemainder(dividingBy: duration)
-		return frameOffsets.firstIndex(where: { $0 <= elapsedWithinLoop }) ?? 0
+		return frameOffsets.lastIndex(where: { $0 <= elapsedWithinLoop }) ?? 0
 	}
 	
 	public func timelineSchedule(paused: Bool) -> some TimelineSchedule {
@@ -83,6 +83,12 @@ public struct VariableFrameTiming: FrameTiming {
 		self.duration = duration
 		self.frameOffsets = frameOffsets
 		self.startDate = startDate
+	}
+}
+
+public extension FrameTiming where Self == VariableFrameTiming {
+	static func variable(frameDelays: [TimeInterval], from startDate: Date = Date(timeIntervalSince1970: 0)) -> VariableFrameTiming {
+		return VariableFrameTiming(frameDelays: frameDelays, from: startDate)
 	}
 }
 
