@@ -9,8 +9,8 @@ import SwiftUI
 
 internal extension Date {
 	var roundedToUnixTenthOfSecond: Date {
-		let millis = Int(self.timeIntervalSince1970 * 10)
-		return .init(timeIntervalSince1970: Double(millis) / 10.0)
+		let tenths = (self.timeIntervalSince1970 * 10).rounded()
+		return .init(timeIntervalSince1970: Double(tenths) / 10.0)
 	}
 }
 
