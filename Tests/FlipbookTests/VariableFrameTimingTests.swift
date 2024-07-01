@@ -18,10 +18,16 @@ final class VariableFrameTimingTests: XCTestCase {
 			3,
 		])
 		XCTAssertEqual(testTiming.frameIndex(at: 0), 0)
+		XCTAssertEqual(testTiming.frameIndex(at: 0.4), 0)
 		XCTAssertEqual(testTiming.frameIndex(at: 0.9), 0)
 		XCTAssertEqual(testTiming.frameIndex(at: 1), 1)
 		XCTAssertEqual(testTiming.frameIndex(at: 1.1), 1)
+		XCTAssertEqual(testTiming.frameIndex(at: 2.9), 1)
 		XCTAssertEqual(testTiming.frameIndex(at: 3), 2)
 		XCTAssertEqual(testTiming.frameIndex(at: 4), 2)
+		XCTAssertEqual(testTiming.frameIndex(at: 5.9), 2)
+		
+		XCTAssertEqual(testTiming.frameIndex(at: now.addingTimeInterval(0.9).timeIntervalSince(now)), 0)
+		XCTAssertEqual(testTiming.frameIndex(at: now.addingTimeInterval(5.9).timeIntervalSince(now)), 2)
 	}
 }

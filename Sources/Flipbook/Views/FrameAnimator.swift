@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+internal extension Date {
+	var roundedToUnixTenthOfSecond: Date {
+		let millis = Int(self.timeIntervalSince1970 * 10)
+		return .init(timeIntervalSince1970: Double(millis) / 10.0)
+	}
+}
+
 /// A view that displays frames of an animation according to timings that you provide.
 public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 	public var timing: Timing
@@ -23,7 +30,7 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 		@ViewBuilder content: @escaping (_ frame: Int) -> Content
 	) {
 		self.timing = timing
-		self.start = start
+		self.start = start.roundedToUnixTenthOfSecond
 		self.paused = paused
 		self.loops = loops
 		self.content = content
@@ -81,6 +88,8 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 		0.5,
 		1,
 		0.5,
+		0.1,
+		0.1,
 		1,
 		0.5,
 		1,
@@ -118,6 +127,36 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 		0.2,
 		0.1,
 		0.2,
+	])) { frame in
+		Image(systemName: "\(frame).circle.fill")
+			.font(.system(size: 100))
+	}
+}
+
+#Preview {
+	FrameAnimator(.variable(frameDelays: [
+		0.01,
+		0.02,
+		0.01,
+		0.02,
+		0.01,
+		0.02,
+		0.01,
+		0.02,
+		0.01,
+		0.02,
+		0.01,
+		0.02,
+		0.01,
+		0.02,
+		0.01,
+		0.02,
+		0.01,
+		0.02,
+		0.01,
+		0.02,
+		0.01,
+		0.02,
 	])) { frame in
 		Image(systemName: "\(frame).circle.fill")
 			.font(.system(size: 100))

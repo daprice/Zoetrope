@@ -18,15 +18,10 @@ public struct VariableFrameTiming: FrameTiming {
 	
 	public func frameIndex(at elapsedTime: TimeInterval) -> Int {
 		guard duration > 0 else { return 0 }
-		let elapsedWithinLoop = elapsedTime.truncatingRemainder(dividingBy: duration)
-//		return frameOffsets.lastIndex(where: { $0 <= elapsedWithinLoop }) ?? 0
-		return closestFrameIndex(toOffset: elapsedWithinLoop) ?? 0
-	}
-	
-	private func closestFrameIndex(toOffset offset: TimeInterval) -> Int? {
-		return frameOffsets.enumerated().min { lhs, rhs in
-			return abs(offset - lhs.element) < abs(offset - rhs.element)
-		}?.offset ?? 0
+		let elapsedMilliseconds = Int( (elapsedTime * 1000).rounded() )
+		let durationMilliseconds = Int( (duration * 1000).rounded() )
+		let elapsedWithinLoop = Double((elapsedMilliseconds % durationMilliseconds)) / 1000
+		return elapsedWithinLoop >= duration ? 0 : frameOffsets.lastIndex(where: { $0 <= elapsedWithinLoop }) ?? 0
 	}
 	
 	public func timelineSchedule(paused: Bool) -> some TimelineSchedule {
@@ -41,11 +36,11 @@ public struct VariableFrameTiming: FrameTiming {
 		
 		for frameDelay in frameDelays {
 			duration += frameDelay
-			frameOffsets.append(frameTime)
+			frameOffsets.append((frameTime * 1000).rounded() / 1000)
 			frameTime += frameDelay
 		}
 		
-		self.duration = duration
+		self.duration = (duration * 1000).rounded() / 1000
 		self.frameOffsets = frameOffsets
 		self.startDate = startDate
 	}
@@ -71,39 +66,46 @@ extension VariableFrameTiming {
 			Entries(startDate: startDate, frameTiming: timing, paused: paused || mode == .lowFrequency)
 		}
 		
-		public struct Entries: Sequence, IteratorProtocol {
+		public struct Entries: Sequence {
 			private let startDate: Date
+			private let sequenceStartDate: Date
 			private let frameTiming: VariableFrameTiming
 			private var paused: Bool
 			
-			private var loopStartDate: Date
-			private var frameIndex: Int
-			
 			internal init(startDate: Date, frameTiming: VariableFrameTiming, paused: Bool) {
-				self.startDate = startDate
 				self.frameTiming = frameTiming
 				self.paused = paused
-				
-				let totalElapsed = startDate.timeIntervalSince(frameTiming.startDate)
-				let loopsCompleted = Int(totalElapsed / frameTiming.duration)
-				let currentFrameIndex = frameTiming.frameIndex(at: totalElapsed)
-				self.loopStartDate = Date(timeInterval: Double(loopsCompleted) * frameTiming.duration, since: frameTiming.startDate)
-				self.frameIndex = currentFrameIndex
+				self.startDate = frameTiming.startDate
+				self.sequenceStartDate = startDate
 			}
 			
-			mutating public func next() -> Date? {
-				guard !self.paused else { return nil }
+			public func makeIterator() -> EntriesIterator {
+				return EntriesIterator(sequenceStartDate: sequenceStartDate, entries: self)
+			}
+			
+			public struct EntriesIterator: IteratorProtocol {
+				private let entries: Entries
+				private var frame: Int
 				
-				if frameIndex >= frameTiming.frameCount - 1 {
-					let nextFrameOffset = frameTiming.duration
-					defer {
-						loopStartDate = loopStartDate.addingTimeInterval(frameTiming.duration)
-						frameIndex = 0
-					}
-					return loopStartDate.addingTimeInterval(nextFrameOffset)
-				} else {
-					frameIndex += 1
-					return loopStartDate.addingTimeInterval(frameTiming.frameOffsets[frameIndex])
+				internal init(sequenceStartDate: Date, entries: Entries) {
+					self.entries = entries
+					
+					let totalElapsed = sequenceStartDate.timeIntervalSince(entries.frameTiming.startDate)
+					let loopCount = Int(totalElapsed / entries.frameTiming.duration)
+					let currentFrameIndex = entries.frameTiming.frameIndex(at: totalElapsed)
+					self.frame = loopCount * entries.frameTiming.frameCount + currentFrameIndex - 1
+				}
+				
+				mutating public func next() -> Date? {
+					guard !entries.paused else { return nil }
+					
+					frame += 1
+					
+					let loopCount = Int(Double(frame) / Double(entries.frameTiming.frameCount))
+					let frameIndex = frame % entries.frameTiming.frameCount
+					
+					let nextFrameOffset = entries.frameTiming.frameOffsets[frameIndex]
+					return entries.startDate.addingTimeInterval(Double(loopCount) * entries.frameTiming.duration + nextFrameOffset)
 				}
 			}
 		}
