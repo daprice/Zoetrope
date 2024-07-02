@@ -7,14 +7,9 @@
 
 import SwiftUI
 
-internal extension Date {
-	var roundedToUnixTenthOfSecond: Date {
-		let tenths = (self.timeIntervalSince1970 * 10).rounded()
-		return .init(timeIntervalSince1970: Double(tenths) / 10.0)
-	}
-}
-
 /// A view that displays frames of an animation according to timings that you provide.
+///
+/// - Important: FrameAnimator does not automatically do anything to respect the user's accessibility settings. You should take such measures yourself, for example by responding to `accessibilityPlayAnimatedImages`, `accessibilityReduceMotion`, and/or `accessibilityDimFlashingLights` as appropriate for your use case.
 public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 	public var timing: Timing
 	public var start: Date
@@ -30,6 +25,7 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 		@ViewBuilder content: @escaping (_ frame: Int) -> Content
 	) {
 		self.timing = timing
+		// SwiftUI TimelineView seems to do a better job of matching our frame timing if we pass it times relative to an even tenth of a second.
 		self.start = start.roundedToUnixTenthOfSecond
 		self.paused = paused
 		self.loops = loops
