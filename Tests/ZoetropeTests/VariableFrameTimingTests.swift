@@ -1,5 +1,5 @@
 import XCTest
-@testable import Flipbook
+@testable import Zoetrope
 
 final class VariableFrameTimingTests: XCTestCase {
 	func testVariableTimingInit() throws {

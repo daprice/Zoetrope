@@ -4,21 +4,21 @@
 import PackageDescription
 
 let package = Package(
-    name: "Flipbook",
+    name: "Zoetrope",
 	platforms: [.macOS(.v12), .iOS(.v15), .tvOS(.v15), .watchOS(.v8), .macCatalyst(.v15), .visionOS(.v1)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "Flipbook",
-            targets: ["Flipbook"]),
+            name: "Zoetrope",
+            targets: ["Zoetrope"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Flipbook"),
+            name: "Zoetrope"),
         .testTarget(
-            name: "FlipbookTests",
-            dependencies: ["Flipbook"]),
+            name: "ZoetropeTests",
+            dependencies: ["Zoetrope"]),
     ]
 )
