@@ -53,6 +53,7 @@ struct AsyncAnimatedImage: View {
 					for frame in frames {
 						group.addTask {
 							// By calling this, we cause the CGImageSource to cache the decoded image, so it will be ready when used even though we don't do anything with the decoded image here.
+							// If we use await byPreparingForDisplay(), in theory that would be better because it's non-blocking, but for whatever reason it seems to decode all the frames serially even though we're calling it from multiple tasks. The synchronous version we use here decodes frames in parallel across multiple CPU cores, resulting in the image being ready much faster.
 							frame.preparingForDisplay()
 						}
 					}
