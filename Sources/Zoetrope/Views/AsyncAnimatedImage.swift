@@ -15,6 +15,7 @@ import AppKit
 @available(iOS 17.0, macOS 14.0, macCatalyst 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
 struct AsyncAnimatedImage: View {
 	var url: URL
+	var start: Date?
 	var precacheFrames: Bool = false
 	
 	#if canImport(UIKit)
@@ -23,19 +24,23 @@ struct AsyncAnimatedImage: View {
 	@State private var image: NSImage? = nil
 	#endif
 	
+	@State private var finishedLoadingDate: Date? = nil
+	
 	/// Loads and plays back an animated image from the specified URL.
 	/// - Parameters:
 	///   - url: The URL of the image to display.
+	///   - start: The `Date` that should be considered as the beginning of the loop for looping images. If `nil`, the loop begins when the image finishes loading. If you provide the same start date to multiple image views, they will play back in sync with each other.
 	///   - precacheFrames: Whether or not to decode every frame before displaying the image. For large or high frame rate images, this prevents animation hitching during playback, but increases loading time and uses more memory.
-	init(url: URL, precacheFrames: Bool = false) {
+	init(url: URL, start: Date? = nil, precacheFrames: Bool = false) {
 		self.url = url
+		self.start = start
 		self.precacheFrames = precacheFrames
 	}
 	
     var body: some View {
 		ZStack {
 			if let image {
-				AnimatedImageView(uiImage: image) { image in
+				AnimatedImageView(uiImage: image, start: start ?? finishedLoadingDate ?? .now) { image in
 					image
 				}
 			}
@@ -65,6 +70,7 @@ struct AsyncAnimatedImage: View {
 			// TODO: whatever the AppKit equivalent of preparingForDisplay is
 			#endif
 			
+			self.finishedLoadingDate = .now
 			self.image = image
 		}
     }
