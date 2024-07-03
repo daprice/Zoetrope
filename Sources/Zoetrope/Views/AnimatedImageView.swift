@@ -71,7 +71,6 @@ public struct AnimatedImageView<Content: View>: View {
 	
 	public var body: some View {
 		if let variableTiming = Self.variableFrameTiming(for: image) {
-			// TODO: read loop count from image
 			FrameAnimator(variableTiming, start: start, paused: paused, loops: image.loopCount) { frameIndex in
 				content(image(frame: frameIndex))
 			}
