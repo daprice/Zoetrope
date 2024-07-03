@@ -69,14 +69,14 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
     }
 }
 
-#Preview {
+#Preview("Constant timing") {
 	FrameAnimator(.constant(frameCount: 10, duration: 2)) { frame in
 		Image(systemName: "\(frame).circle.fill")
 			.font(.system(size: 100))
 	}
 }
 
-#Preview {
+#Preview("Variable timing") {
 	FrameAnimator(.variable(frameDelays: [
 		0.5,
 		1,
@@ -96,7 +96,7 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 	}
 }
 
-#Preview {
+#Preview("Fast variable timing") {
 	FrameAnimator(.variable(frameDelays: [
 		0.1,
 		0.2,
@@ -128,7 +128,7 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 	}
 }
 
-#Preview {
+#Preview("Very fast variable timing") {
 	FrameAnimator(.variable(frameDelays: [
 		0.01,
 		0.02,

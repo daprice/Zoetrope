@@ -45,13 +45,27 @@ struct AsyncAnimatedImage: View {
     }
 }
 
-#Preview {
+#Preview("WebP (non-macOS only)") {
+	ScrollView {
+		VStack {
+			if #available(iOS 17.0, macOS 14.0, macCatalyst 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
+				AsyncAnimatedImage(url: URL(string: "https://i.giphy.com/3NtY188QaxDdC.webp")! )
+			} else {
+				EmptyView()
+			}
+		}
+		.frame(width: 500, height: 500)
+	}
+}
+
+
+#Preview("Variable frame delay GIF") {
 	VStack {
 		if #available(iOS 17.0, macOS 14.0, macCatalyst 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
-			AsyncAnimatedImage(url: URL(string: "https://files.mastodon.social/accounts/avatars/000/010/843/original/media.gif")! )
+			AsyncAnimatedImage(url: URL(string: "https://i.sstatic.net/AK9Pj.gif")! )
 		} else {
 			EmptyView()
 		}
 	}
-	.frame(width: 200, height: 200)
+	.frame(width: 400, height: 200)
 }
