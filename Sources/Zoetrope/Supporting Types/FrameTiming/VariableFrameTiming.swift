@@ -85,15 +85,15 @@ extension VariableFrameTiming {
 			
 			public struct EntriesIterator: IteratorProtocol {
 				private let entries: Entries
-				private var frame: UInt
+				private var frame: Int
 				
 				internal init(sequenceStartDate: Date, entries: Entries) {
 					self.entries = entries
 					
 					let totalElapsed = sequenceStartDate.timeIntervalSince(entries.startDate)
-					let loopCount = UInt(totalElapsed / entries.frameTiming.duration)
+					let loopCount = Int(totalElapsed / entries.frameTiming.duration)
 					let currentFrameIndex = entries.frameTiming.frameIndex(at: totalElapsed)
-					self.frame = loopCount * UInt(entries.frameTiming.frameCount) + UInt(currentFrameIndex) - 1
+					self.frame = loopCount * entries.frameTiming.frameCount + currentFrameIndex - 1
 				}
 				
 				mutating public func next() -> Date? {
@@ -102,7 +102,7 @@ extension VariableFrameTiming {
 					frame += 1
 					
 					let loopCount = Int(Double(frame) / Double(entries.frameTiming.frameCount))
-					let frameIndex = frame % UInt(entries.frameTiming.frameCount)
+					let frameIndex = frame % entries.frameTiming.frameCount
 					
 					let nextFrameOffset = entries.frameTiming.frameOffsets[Int(frameIndex)]
 					return entries.startDate.addingTimeInterval(Double(loopCount) * entries.frameTiming.duration + nextFrameOffset)
