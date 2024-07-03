@@ -14,14 +14,14 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 	public var timing: Timing
 	public var start: Date
 	public var paused: Bool
-	public var loops: Int?
+	public var loops: UInt?
 	@ViewBuilder public var content: (_ frame: Int) -> Content
 	
 	public init(
 		_ timing: Timing,
 		start: Date = Date(timeIntervalSince1970: 0),
 		paused: Bool = false,
-		loops: Int? = nil,
+		loops: UInt? = nil,
 		@ViewBuilder content: @escaping (_ frame: Int) -> Content
 	) {
 		self.timing = timing

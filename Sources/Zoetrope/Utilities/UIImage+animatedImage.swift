@@ -32,6 +32,7 @@ extension UIImage {
 		guard let source = CGImageSourceCreateWithData(data as CFData, options as CFDictionary) else { return nil }
 		
 		let frameCount = CGImageSourceGetCount(source)
+		let loopCount = source.getLoopCount()
 		var frames: [(UIImage, Double)] = []
 		frames.reserveCapacity(frameCount)
 		var duration = 0.0
@@ -62,13 +63,17 @@ extension UIImage {
 		
 		guard !frames.isEmpty else { return nil }
 		
-		return UIImage.animatedImage(with: frames.map { $0.0 }, duration: duration)
-		// TODO: read and do something with the loop count from the gif
+		let image = UIImage.animatedImage(with: frames.map { $0.0 }, duration: duration)
+		if let loopCount, let image {
+			image.loopCount = loopCount > 0 ? loopCount : nil
+		}
+		return image
 	}
 }
 
 extension UIImage {
 	private static let frameDelayKey = "frameDelay"
+	private static let loopCountKey = "loopCount"
 	
 	/// An associated object specifying the frame delay. This is non-nil on the contents of `frames` on a `UIImage` initialized using ``animatedImage(data:fileExtension:)``.
 	public var frameDelay: Double? {
@@ -82,9 +87,44 @@ extension UIImage {
 			}
 		}
 	}
+	
+	/// An associated object specifying the loop count. Nil if image is supposed to loop endlessly.
+	public var loopCount: UInt? {
+		get {
+			return (objc_getAssociatedObject(self, Self.loopCountKey) as? NSNumber)?.uintValue
+		}
+		
+		set {
+			if let value = newValue {
+				objc_setAssociatedObject(self, Self.loopCountKey, NSNumber(value: value), .OBJC_ASSOCIATION_RETAIN)
+			}
+		}
+	}
 }
 
 extension CGImageSource {
+	internal func getLoopCount() -> UInt? {
+		guard let properties = CGImageSourceCopyProperties(self, nil) else {
+			return nil
+		}
+		
+		if let gifInfo = (properties as NSDictionary)[kCGImagePropertyGIFDictionary] as? NSDictionary,
+			  let gifLoopCount = (gifInfo[kCGImagePropertyGIFLoopCount as String] as? NSNumber)?.uintValue {
+			return gifLoopCount
+		} else if let pngInfo = (properties as NSDictionary)[kCGImagePropertyPNGDictionary] as? NSDictionary,
+				  let pngLoopCount = (pngInfo[kCGImagePropertyAPNGLoopCount as String] as? NSNumber)?.uintValue {
+			return pngLoopCount
+		} else if let webpInfo = (properties as NSDictionary)[kCGImagePropertyWebPDictionary] as? NSDictionary,
+				  let webpLoopCount = (webpInfo[kCGImagePropertyWebPLoopCount as String] as? NSNumber)?.uintValue {
+			return webpLoopCount
+		} else if let heicsInfo = (properties as NSDictionary)[kCGImagePropertyHEICSDictionary] as? NSDictionary,
+				  let heicsLoopCount = (heicsInfo[kCGImagePropertyHEICSLoopCount as String] as? NSNumber)?.uintValue {
+			return heicsLoopCount
+		} else {
+			return nil
+		}
+	}
+	
 	internal func frameDelayAtIndex(_ index: Int) -> Double? {
 		guard let properties = CGImageSourceCopyPropertiesAtIndex(self, index, nil) else {
 			return nil
