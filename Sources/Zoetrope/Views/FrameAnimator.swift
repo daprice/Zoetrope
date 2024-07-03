@@ -25,8 +25,7 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 		@ViewBuilder content: @escaping (_ frame: Int) -> Content
 	) {
 		self.timing = timing
-		// SwiftUI TimelineView seems to do a better job of matching our frame timing if we pass it times relative to an even tenth of a second.
-		self.start = start.roundedToUnixTenthOfSecond
+		self.start = start
 		self.paused = paused
 		self.loops = loops
 		self.content = content
@@ -60,7 +59,7 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 	
     public var body: some View {
 		if canAnimate {
-			TimelineView(timing.timelineSchedule(paused: paused || hasReachedLoopLimit(at: .now))) { context in
+			TimelineView(timing.timelineSchedule(paused: paused || hasReachedLoopLimit(at: .now), loopStart: start)) { context in
 				let frame = frameIndex(at: context.date)
 				content(frame)
 			}

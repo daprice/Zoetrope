@@ -10,7 +10,6 @@ import SwiftUI
 public struct VariableFrameTiming: FrameTiming {
 	public let frameOffsets: [TimeInterval]
 	public let duration: TimeInterval
-	public let startDate: Date
 	
 	public var frameCount: Int {
 		frameOffsets.count
@@ -24,11 +23,11 @@ public struct VariableFrameTiming: FrameTiming {
 		return elapsedWithinLoop >= duration ? 0 : frameOffsets.lastIndex(where: { $0 <= elapsedWithinLoop }) ?? 0
 	}
 	
-	public func timelineSchedule(paused: Bool) -> some TimelineSchedule {
-		return VariableFrameTimelineSchedule(timing: self, paused: paused)
+	public func timelineSchedule(paused: Bool, loopStart: Date) -> some TimelineSchedule {
+		return VariableFrameTimelineSchedule(timing: self, paused: paused, start: loopStart)
 	}
 	
-	public init(frameDelays: [TimeInterval], from startDate: Date) {
+	public init(frameDelays: [TimeInterval]) {
 		var duration: TimeInterval = 0
 		var frameOffsets: [TimeInterval] = []
 		frameOffsets.reserveCapacity(frameDelays.count)
@@ -42,13 +41,12 @@ public struct VariableFrameTiming: FrameTiming {
 		
 		self.duration = (duration * 1000).rounded() / 1000
 		self.frameOffsets = frameOffsets
-		self.startDate = startDate
 	}
 }
 
 public extension FrameTiming where Self == VariableFrameTiming {
-	static func variable(frameDelays: [TimeInterval], from startDate: Date = Date(timeIntervalSince1970: 0)) -> VariableFrameTiming {
-		return VariableFrameTiming(frameDelays: frameDelays, from: startDate)
+	static func variable(frameDelays: [TimeInterval]) -> VariableFrameTiming {
+		return VariableFrameTiming(frameDelays: frameDelays)
 	}
 }
 
@@ -56,14 +54,16 @@ extension VariableFrameTiming {
 	public struct VariableFrameTimelineSchedule: TimelineSchedule {
 		public var timing: VariableFrameTiming
 		public var paused: Bool
+		public var start: Date
 		
-		public init(timing: VariableFrameTiming, paused: Bool = false) {
+		public init(timing: VariableFrameTiming, paused: Bool = false, start: Date) {
 			self.timing = timing
 			self.paused = paused
+			self.start = start
 		}
 		
 		public func entries(from startDate: Date, mode: Mode) -> Entries {
-			Entries(startDate: startDate, frameTiming: timing, paused: paused || mode == .lowFrequency)
+			Entries(startDate: startDate, frameTiming: timing, schedule: self, paused: paused || mode == .lowFrequency)
 		}
 		
 		public struct Entries: Sequence {
@@ -72,10 +72,10 @@ extension VariableFrameTiming {
 			private let frameTiming: VariableFrameTiming
 			private var paused: Bool
 			
-			internal init(startDate: Date, frameTiming: VariableFrameTiming, paused: Bool) {
+			internal init(startDate: Date, frameTiming: VariableFrameTiming, schedule: VariableFrameTimelineSchedule, paused: Bool) {
 				self.frameTiming = frameTiming
 				self.paused = paused
-				self.startDate = frameTiming.startDate
+				self.startDate = schedule.start
 				self.sequenceStartDate = startDate
 			}
 			
@@ -90,7 +90,7 @@ extension VariableFrameTiming {
 				internal init(sequenceStartDate: Date, entries: Entries) {
 					self.entries = entries
 					
-					let totalElapsed = sequenceStartDate.timeIntervalSince(entries.frameTiming.startDate)
+					let totalElapsed = sequenceStartDate.timeIntervalSince(entries.startDate)
 					let loopCount = Int(totalElapsed / entries.frameTiming.duration)
 					let currentFrameIndex = entries.frameTiming.frameIndex(at: totalElapsed)
 					self.frame = loopCount * entries.frameTiming.frameCount + currentFrameIndex - 1

@@ -25,7 +25,7 @@ public struct ConstantFrameTiming: FrameTiming {
 		return Int(elapsedWithinLoop / frameDuration)
 	}
 	
-	public func timelineSchedule(paused: Bool) -> AnimationTimelineSchedule {
+	public func timelineSchedule(paused: Bool, loopStart _: Date) -> AnimationTimelineSchedule {
 		return AnimationTimelineSchedule(minimumInterval: frameDuration, paused: paused)
 	}
 	

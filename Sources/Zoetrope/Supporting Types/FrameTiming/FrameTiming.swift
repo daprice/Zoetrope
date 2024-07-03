@@ -12,5 +12,5 @@ public protocol FrameTiming: Equatable, Hashable {
 	var duration: TimeInterval { get }
 	var frameCount: Int { get }
 	func frameIndex(at elapsedTime: TimeInterval) -> Int
-	func timelineSchedule(paused: Bool) -> FrameTimelineSchedule
+	func timelineSchedule(paused: Bool, loopStart: Date) -> FrameTimelineSchedule
 }
