@@ -7,14 +7,23 @@
 
 import SwiftUI
 
+/// Defines frames to be played back at a variable frame rate by defining the length of time that each individual frame should be shown for.
+///
+/// You can also use ``FrameTiming/variable(frameDelays:)`` to construct an instance of this type.
 public struct VariableFrameTiming: FrameTiming {
+	/// A set of elapsed times after which the next frame should be shown.
 	public let frameOffsets: [TimeInterval]
+	/// The total duration of one loop of the animation.
 	public let duration: TimeInterval
 	
+	/// The total number of frames in the animation.
 	public var frameCount: Int {
 		frameOffsets.count
 	}
 	
+	/// Gets the frame index that should be shown after the given amount of time has elapsed during the animation.
+	///
+	/// Rounds to the nearest millisecond to avoid getting the wrong frame due to floating point inaccuracy.
 	public func frameIndex(at elapsedTime: TimeInterval) -> Int {
 		guard duration > 0 else { return 0 }
 		let elapsedMilliseconds = Int( (elapsedTime * 1000).rounded() )
@@ -23,10 +32,13 @@ public struct VariableFrameTiming: FrameTiming {
 		return elapsedWithinLoop >= duration ? 0 : frameOffsets.lastIndex(where: { $0 <= elapsedWithinLoop }) ?? 0
 	}
 	
+	/// Create a TimelineSchedule for updating the view at the start of each frame.
 	public func timelineSchedule(paused: Bool, loopStart: Date) -> some TimelineSchedule {
 		return VariableFrameTimelineSchedule(timing: self, paused: paused, start: loopStart)
 	}
 	
+	/// Create a schedule for frames to be back with a unique duration for each frame.
+	/// - Parameter frameDelays: An array of lengths of time that each frame should be displayed for.
 	public init(frameDelays: [TimeInterval]) {
 		var duration: TimeInterval = 0
 		var frameOffsets: [TimeInterval] = []
@@ -45,12 +57,16 @@ public struct VariableFrameTiming: FrameTiming {
 }
 
 public extension FrameTiming where Self == VariableFrameTiming {
+	/// Create a schedule for frames to be back with a unique duration for each frame.
+	/// - Parameter frameDelays: An array of lengths of time that each frame should be displayed for.
+	/// - Returns: A ``VariableFrameTiming`` instance initialized with frame offsets defined according to the given frame delays.
 	static func variable(frameDelays: [TimeInterval]) -> VariableFrameTiming {
 		return VariableFrameTiming(frameDelays: frameDelays)
 	}
 }
 
 extension VariableFrameTiming {
+	/// A TimelineSchedule type that defines view updates at the points in time where a new frame should be shown according to a ``VariableFrameTiming`` instance.
 	public struct VariableFrameTimelineSchedule: TimelineSchedule {
 		public var timing: VariableFrameTiming
 		public var paused: Bool
