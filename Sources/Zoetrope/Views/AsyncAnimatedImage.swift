@@ -203,14 +203,10 @@ public struct AsyncAnimatedImage<Content: View>: View {
     }
 }
 
-#Preview("Variable frame delay GIF with placeholder") {
+#Preview("Variable frame delay GIF") {
 	VStack {
 		if #available(iOS 17.0, macOS 14.0, macCatalyst 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
-			AsyncAnimatedImage(url: URL(string: "https://i.sstatic.net/AK9Pj.gif")! ) { image in
-				image
-			} placeholder: {
-				ProgressView()
-			}
+			AsyncAnimatedImage(url: URL(string: "https://i.sstatic.net/AK9Pj.gif")! )
 		} else {
 			EmptyView()
 		}
@@ -223,7 +219,11 @@ public struct AsyncAnimatedImage<Content: View>: View {
 	ScrollView {
 		VStack {
 			if #available(iOS 17.0, macOS 14.0, macCatalyst 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
-				AsyncAnimatedImage(url: URL(string: "https://i.giphy.com/3NtY188QaxDdC.webp")!, precacheFrames: true )
+				AsyncAnimatedImage(url: URL(string: "https://i.giphy.com/3NtY188QaxDdC.webp")!, precacheFrames: true ) { image in
+					image
+				} placeholder: {
+					ProgressView()
+				}
 			} else {
 				EmptyView()
 			}
