@@ -72,18 +72,20 @@ extension UIImage {
 }
 
 extension UIImage {
-	private static let frameDelayKey = "frameDelay"
-	private static let loopCountKey = "loopCount"
+	private static var frameDelayKey: Bool = false
+	private static var loopCountKey: Bool = false
 	
 	/// An associated object specifying the frame delay. This is non-nil on the contents of `frames` on a `UIImage` initialized using ``animatedImage(data:fileExtension:)``.
 	public var frameDelay: Double? {
 		get {
-			return (objc_getAssociatedObject(self, Self.frameDelayKey) as? NSNumber)?.doubleValue
+			return (objc_getAssociatedObject(self, &Self.frameDelayKey) as? NSNumber)?.doubleValue
 		}
 		
 		set {
 			if let value = newValue {
-				objc_setAssociatedObject(self, Self.frameDelayKey, NSNumber(value: value), .OBJC_ASSOCIATION_RETAIN)
+				objc_setAssociatedObject(self, &Self.frameDelayKey, NSNumber(value: value), .OBJC_ASSOCIATION_RETAIN)
+			} else {
+				objc_setAssociatedObject(self, &Self.frameDelayKey, nil, .OBJC_ASSOCIATION_RETAIN)
 			}
 		}
 	}
@@ -91,12 +93,14 @@ extension UIImage {
 	/// An associated object specifying the loop count. Nil if image is supposed to loop endlessly.
 	public var loopCount: UInt? {
 		get {
-			return (objc_getAssociatedObject(self, Self.loopCountKey) as? NSNumber)?.uintValue
+			return (objc_getAssociatedObject(self, &Self.loopCountKey) as? NSNumber)?.uintValue
 		}
 		
 		set {
 			if let value = newValue {
-				objc_setAssociatedObject(self, Self.loopCountKey, NSNumber(value: value), .OBJC_ASSOCIATION_RETAIN)
+				objc_setAssociatedObject(self, &Self.loopCountKey, NSNumber(value: value), .OBJC_ASSOCIATION_RETAIN)
+			} else {
+				objc_setAssociatedObject(self, &Self.loopCountKey, nil, .OBJC_ASSOCIATION_RETAIN)
 			}
 		}
 	}
