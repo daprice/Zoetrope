@@ -70,11 +70,11 @@ public struct AnimatedImageView<Content: View>: View {
 	}
 	
 	public var body: some View {
-		if let variableTiming = Self.variableFrameTiming(for: image) {
+		if let variableTiming = VariableFrameTiming(from: image) {
 			FrameAnimator(variableTiming, start: start, paused: paused, loops: image.loopCount) { frameIndex in
 				content(image(frame: frameIndex))
 			}
-		} else if let constantTiming = Self.constantFrameTiming(for: image) {
+		} else if let constantTiming = ConstantFrameTiming(from: image) {
 			FrameAnimator(constantTiming, start: start, paused: paused, loops: image.loopCount) { frameIndex in
 				content(image(frame: frameIndex))
 			}

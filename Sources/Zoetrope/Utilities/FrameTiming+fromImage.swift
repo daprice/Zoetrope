@@ -13,40 +13,31 @@ import UIKit
 import AppKit
 #endif
 
-#if canImport(UIKit)
-
-@available(iOS 17.0, macOS 14.0, macCatalyst 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
-extension AnimatedImageView {
-	/// Create a ``VariableFrameTiming`` instance that matches the frame delays set on the image's frames. Nil if not all frames have a `frameDelay` property or duration is 0.
-	internal static func variableFrameTiming(for image: UIImage) -> VariableFrameTiming? {
+extension VariableFrameTiming {
+	#if canImport(UIKit)
+	
+	/// Create a ``VariableFrameTiming`` instance that matches the frame delays set on a `UIImage`'s frames.
+	///
+	/// Returns nil if not all frames have a `frameDelay` property or duration is 0.
+	public init?(from image: UIImage) {
 		guard let frames = image.images, !frames.isEmpty, image.duration > 0 else {
 			return nil
 		}
 		
 		let frameDelays = frames.compactMap { $0.frameDelay }
 		if frameDelays.count == frames.count {
-			return VariableFrameTiming(frameDelays: frameDelays)
+			self.init(frameDelays: frameDelays)
 		} else {
 			return nil
 		}
 	}
 	
-	/// Create a ``ConstantFrameTiming`` instance that matches the frame count and duration of the image. Nil if there are no sub-images or duration is 0.
-	internal static func constantFrameTiming(for image: UIImage) -> ConstantFrameTiming? {
-		guard let frames = image.images, !frames.isEmpty, image.duration > 0 else {
-			return nil
-		}
-		
-		return ConstantFrameTiming(frameCount: frames.count, duration: image.duration)
-	}
-}
-
-#elseif canImport(AppKit)
-
-@available(iOS 17.0, macOS 14.0, macCatalyst 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
-extension AnimatedImageView {
-	// returns nil if all frames have the same duration, as we don't need variable timing for that
-	internal static func variableFrameTiming(for image: NSImage) -> VariableFrameTiming? {
+	#elseif canImport(AppKit)
+	
+	/// Create a ``VariableFrameTiming`` instance that matches the frame delays of an `NSImage`'s animatable representation, if it has one.
+	///
+	/// Returns nil if all frames have the same duration, because ``ConstantFrameTiming`` is more appropriate in that case.
+	public init?(from image: NSImage) {
 		guard let animatableRep = image.animatableRepresentation, let frameCount = image.animationFrameCount else {
 			return nil
 		}
@@ -68,10 +59,30 @@ extension AnimatedImageView {
 		}
 		
 		guard isVariable else { return nil }
-		return VariableFrameTiming(frameDelays: frameDelays)
+		self.init(frameDelays: frameDelays)
 	}
 	
-	internal static func constantFrameTiming(for image: NSImage) -> ConstantFrameTiming? {
+	#endif
+}
+
+extension ConstantFrameTiming {
+	#if canImport(UIKit)
+	
+	/// Create a ``ConstantFrameTiming`` instance that matches the frame count and duration of a `UIImage`.
+	///
+	/// Returns nil if there are no sub-images or duration is 0.
+	public init?(from image: UIImage) {
+		guard let frames = image.images, !frames.isEmpty, image.duration > 0 else {
+			return nil
+		}
+		
+		self.init(frameCount: frames.count, duration: image.duration)
+	}
+	
+	#elseif canImport(AppKit)
+	
+	/// Create a ``ConstantFrameTiming`` instance using the frame count and duration of an `NSImage`'s animatable representation, if it has one.
+	public init?(from image: NSImage) {
 		guard let animatableRep = image.animatableRepresentation, let frameCount = image.animationFrameCount else {
 			return nil
 		}
@@ -85,8 +96,8 @@ extension AnimatedImageView {
 			duration += frameDuration
 		}
 		
-		return ConstantFrameTiming(frameCount: frameCount, duration: duration)
+		self.init(frameCount: frameCount, duration: duration)
 	}
+	
+	#endif
 }
-
-#endif
