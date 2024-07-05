@@ -74,20 +74,22 @@ extension UIImage {
 }
 
 extension UIImage {
-	private static var frameDelayKey: Bool = false
-	private static var loopCountKey: Bool = false
+	fileprivate static let frameDelayKey = malloc(1)
+	fileprivate static let loopCountKey = malloc(1)
 	
 	/// An associated object specifying the frame delay. This is non-nil on the contents of `frames` on a `UIImage` initialized using ``animatedImage(data:fileExtension:)``.
 	public var frameDelay: Double? {
 		get {
-			return (objc_getAssociatedObject(self, &Self.frameDelayKey) as? NSNumber)?.doubleValue
+			guard let frameDelayKey = Self.frameDelayKey else { return nil }
+			return (objc_getAssociatedObject(self, frameDelayKey) as? NSNumber)?.doubleValue
 		}
 		
 		set {
+			guard let frameDelayKey = Self.frameDelayKey else { return }
 			if let value = newValue {
-				objc_setAssociatedObject(self, &Self.frameDelayKey, NSNumber(value: value), .OBJC_ASSOCIATION_RETAIN)
+				objc_setAssociatedObject(self, frameDelayKey, NSNumber(value: value), .OBJC_ASSOCIATION_RETAIN)
 			} else {
-				objc_setAssociatedObject(self, &Self.frameDelayKey, nil, .OBJC_ASSOCIATION_RETAIN)
+				objc_setAssociatedObject(self, frameDelayKey, nil, .OBJC_ASSOCIATION_RETAIN)
 			}
 		}
 	}
@@ -95,14 +97,16 @@ extension UIImage {
 	/// An associated object specifying the loop count. Nil if image is supposed to loop endlessly.
 	public var loopCount: UInt? {
 		get {
-			return (objc_getAssociatedObject(self, &Self.loopCountKey) as? NSNumber)?.uintValue
+			guard let loopCountKey = Self.loopCountKey else { return nil }
+			return (objc_getAssociatedObject(self, loopCountKey) as? NSNumber)?.uintValue
 		}
 		
 		set {
+			guard let loopCountKey = Self.loopCountKey else { return }
 			if let value = newValue {
-				objc_setAssociatedObject(self, &Self.loopCountKey, NSNumber(value: value), .OBJC_ASSOCIATION_RETAIN)
+				objc_setAssociatedObject(self, loopCountKey, NSNumber(value: value), .OBJC_ASSOCIATION_RETAIN)
 			} else {
-				objc_setAssociatedObject(self, &Self.loopCountKey, nil, .OBJC_ASSOCIATION_RETAIN)
+				objc_setAssociatedObject(self, loopCountKey, nil, .OBJC_ASSOCIATION_RETAIN)
 			}
 		}
 	}
