@@ -43,7 +43,7 @@ public struct FrameAnimator<Timing: FrameTiming, Content: View>: View {
 	}
 	
 	private var canAnimate: Bool {
-		timing.duration > 0
+		timing.duration > 0 && timing.frameCount > 1
 	}
 	
 	private func frameIndex(at date: Date) -> Int {
