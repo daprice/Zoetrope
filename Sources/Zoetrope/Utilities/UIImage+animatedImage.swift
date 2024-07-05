@@ -15,7 +15,7 @@ extension UIImage {
 	/// - Parameters:
 	///   - data: The data object containing the image data.
 	///   - fileExtension: Optionally, pass the image's file extension (if known) such as `"gif"`, `"png"`, etc. This provides a hint for determining the format of the image when decoding, but is not strictly necessary.
-	/// - Returns: A `UIImage` instance, or nil if the image could not be initialized or the image does not contain frames. The returned `UIImage` will have its `duration` property set to the total animation duration, and its `images` array will contain the individual frames.
+	/// - Returns: A `UIImage` instance, or nil if the image could not be initialized or the image does not contain frames. The returned `UIImage` will have its `duration` property set to the total animation duration, and its `images` array will contain the individual frames. If the image only contains one frame (i.e. isn't animated), a plain `UIImage` will be returned.
 	///
 	/// If the image has a variable frame rate, each item in `images` will have an extra property ``frameDelay`` attached using an Associated Object, specifying the duration of that frame.
 	///
@@ -64,6 +64,10 @@ extension UIImage {
 		}
 		
 		guard !frames.isEmpty else { return nil }
+		
+		guard frames.count > 1 else {
+			return frames.first?.0
+		}
 		
 		let image = UIImage.animatedImage(with: frames.map { $0.0 }, duration: duration)
 		if let loopCount, let image {
