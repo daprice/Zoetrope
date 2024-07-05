@@ -140,11 +140,11 @@ public struct AsyncAnimatedImage<Content: View>: View {
 		ZStack {
 			if let image {
 				#if canImport(UIKit)
-				AnimatedImageView(uiImage: image, start: start ?? finishedLoadingDate ?? .now) { image in
+				AnimatedImageView(uiImage: image, start: start ?? finishedLoadingDate ?? .now, paused: paused, stopped: stopped) { image in
 					content(.success(image))
 				}
 				#elseif canImport(AppKit)
-				AnimatedImageView(nsImage: image, start: start ?? finishedLoadingDate ?? .now) { image in
+				AnimatedImageView(nsImage: image, start: start ?? finishedLoadingDate ?? .now, paused: paused, stopped: stopped) { image in
 					content(.success(image))
 				}
 				#endif
