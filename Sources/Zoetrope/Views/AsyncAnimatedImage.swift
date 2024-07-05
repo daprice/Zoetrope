@@ -48,7 +48,7 @@ public struct AsyncAnimatedImage<Content: View>: View {
 	///   - start: The `Date` that should be considered as the beginning of the loop for looping images. If `nil`, the loop begins when the image finishes loading. If you provide the same start date to multiple image views, they will play back in sync with each other.
 	///   - paused: Whether the animation should be paused on whichever frame is current as of the time that `paused` is set to `true`.
 	///   - stopped: If `true`, prevents the animation from playing and only displays the first frame.
-	///   - precacheFrames: Whether or not to decode every frame before displaying the image. For large or high frame rate images, this prevents animation hitching during playback, but increases loading time and uses more memory. Has no effect on AppKit platforms (macOS).
+	///   - precacheFrames: Whether or not to decode every frame before displaying the image. For large or high frame rate images, this prevents animation hitching during playback, but increases loading time and uses more memory. Has no effect on AppKit platforms (macOS) or watchOS.
 	public init(
 		url: URL,
 		start: Date? = nil,
@@ -81,7 +81,7 @@ public struct AsyncAnimatedImage<Content: View>: View {
 	///   - start: The `Date` that should be considered as the beginning of the loop for looping images. If `nil`, the loop begins when the image finishes loading. If you provide the same start date to multiple image views, they will play back in sync with each other.
 	///   - paused: Whether the animation should be paused on whichever frame is current as of the time that `paused` is set to `true`.
 	///   - stopped: If `true`, prevents the animation from playing and only displays the first frame.
-	///   - precacheFrames: Whether or not to decode every frame before displaying the image. For large or high frame rate images, this prevents animation hitching during playback, but increases loading time and uses more memory. Has no effect on AppKit platforms (macOS).
+	///   - precacheFrames: Whether or not to decode every frame before displaying the image. For large or high frame rate images, this prevents animation hitching during playback, but increases loading time and uses more memory. Has no effect on AppKit platforms (macOS) or watchOS.
 	///   - content: A closure that receives an Image view for each frame and generates the view to show. You can return the image directly, or modify it as needed.
 	///   - placeholder: A closure that returns a view to show until loading finishes.
 	public init<I, P>(
@@ -115,7 +115,7 @@ public struct AsyncAnimatedImage<Content: View>: View {
 	///   - start: The `Date` that should be considered as the beginning of the loop for looping images. If `nil`, the loop begins when the image finishes loading. If you provide the same start date to multiple image views, they will play back in sync with each other.
 	///   - paused: Whether the animation should be paused on whichever frame is current as of the time that `paused` is set to `true`.
 	///   - stopped: If `true`, prevents the animation from playing and only displays the first frame.
-	///   - precacheFrames: Whether or not to decode every frame before displaying the image. For large or high frame rate images, this prevents animation hitching during playback, but increases loading time and uses more memory. Has no effect on AppKit platforms (macOS).
+	///   - precacheFrames: Whether or not to decode every frame before displaying the image. For large or high frame rate images, this prevents animation hitching during playback, but increases loading time and uses more memory. Has no effect on AppKit platforms (macOS) or watchOS.
 	///   - transaction: The transaction to use when the phase changes.
 	///   - content: A closure that takes the load phase as input, and returns the view to display for the specified phase. As the image plays back, the closure will be called with a `.success` value for each individual frame of the animation.
 	public init(
@@ -169,6 +169,7 @@ public struct AsyncAnimatedImage<Content: View>: View {
 					throw AsyncAnimatedImageError.couldNotDecodeImage
 				}
 				
+				#if !os(watchOS)
 				try Task.checkCancellation()
 				if precacheFrames, let frames = image.images {
 					await withTaskGroup(of: Void.self) { group in
@@ -181,6 +182,7 @@ public struct AsyncAnimatedImage<Content: View>: View {
 						}
 					}
 				}
+				#endif
 				
 				#elseif canImport(AppKit)
 				guard let image = NSImage(data: data) else {
