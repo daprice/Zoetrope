@@ -218,18 +218,17 @@ public struct AsyncAnimatedImage<Content: View>: View {
 
 #Preview("WebP (animates on non-macOS only)") {
 	// On macOS, NSImage doesn't support animated webp files (as of Sonoma), so this just shows as a static image.
-	ScrollView {
-		VStack {
-			if #available(iOS 17.0, macOS 14.0, macCatalyst 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
-				AsyncAnimatedImage(url: URL(string: "https://i.giphy.com/3NtY188QaxDdC.webp")!, precacheFrames: true ) { image in
-					image
-				} placeholder: {
-					ProgressView()
-				}
-			} else {
-				EmptyView()
+	VStack {
+		if #available(iOS 17.0, macOS 14.0, macCatalyst 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
+			AsyncAnimatedImage(url: URL(string: "https://i.giphy.com/3NtY188QaxDdC.webp")!, precacheFrames: true ) { image in
+				image
+					.resizable()
+					.scaledToFit()
+			} placeholder: {
+				ProgressView()
 			}
+		} else {
+			EmptyView()
 		}
-		.frame(width: 500, height: 500)
 	}
 }
